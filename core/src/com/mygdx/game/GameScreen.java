@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -37,6 +39,7 @@ public class GameScreen extends ScreenAdapter {
     private TiledMap tiledMap;
     private OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
     private Pete pete;
+    private Array<Acorn> acorns = new Array<Acorn>();
 
     public GameScreen(PeteGame peteGame) {
         this.peteGame = peteGame;
@@ -64,6 +67,8 @@ public class GameScreen extends ScreenAdapter {
 
         pete = new Pete(peteGame.getAssetManager().get("pete.png", Texture.class));
         pete.setPosition(0, 300);
+
+        populateAcorns();
     }
 
     @Override
@@ -89,6 +94,9 @@ public class GameScreen extends ScreenAdapter {
         orthogonalTiledMapRenderer.render();
 
         batch.begin();
+        for (Acorn acorn : acorns) {
+            acorn.draw(batch);
+        }
         pete.draw(batch);
         batch.end();
     }
@@ -102,6 +110,7 @@ public class GameScreen extends ScreenAdapter {
         pete.update(delta);
         stopPeteLeavingTheScreen();
         handlePeteCollision();
+        handleCollisionWithAcorn();
     }
 
     private void stopPeteLeavingTheScreen() {
@@ -198,6 +207,24 @@ public class GameScreen extends ScreenAdapter {
                 if (intersection.getX() > pete.getX()) {
                     pete.setPosition(intersection.getX() - Pete.WIDTH, pete.getY());
                 }
+            }
+        }
+    }
+
+    private void populateAcorns() {
+        MapLayer mapLayer = tiledMap.getLayers().get("Collectables");
+        for (MapObject mapObject : mapLayer.getObjects()) {
+            acorns.add(new Acorn(peteGame.getAssetManager().get("acorn.png", Texture.class), mapObject.getProperties
+                    ().get("x", Float.class), mapObject.getProperties
+                    ().get("y", Float.class)));
+        }
+    }
+
+    private void handleCollisionWithAcorn () {
+        for (Iterator<Acorn> iter = acorns.iterator(); iter.hasNext(); ) {
+            Acorn acorn = iter.next();
+            if (pete.getCollisionRectangle().overlaps(acorn.getCollision())) {
+                iter.remove();
             }
         }
     }
