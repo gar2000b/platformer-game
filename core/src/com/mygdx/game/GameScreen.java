@@ -111,6 +111,7 @@ public class GameScreen extends ScreenAdapter {
         stopPeteLeavingTheScreen();
         handlePeteCollision();
         handleCollisionWithAcorn();
+        updateCameraX();
     }
 
     private void stopPeteLeavingTheScreen() {
@@ -121,8 +122,10 @@ public class GameScreen extends ScreenAdapter {
         if (pete.getX() < 0) {
             pete.setPosition(0, pete.getY());
         }
-        if (pete.getX() + Pete.WIDTH > WORLD_WIDTH) {
-            pete.setPosition(WORLD_WIDTH - Pete.WIDTH, pete.getY());
+        TiledMapTileLayer tiledMapTileLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+        float levelWidth = tiledMapTileLayer.getWidth() * tiledMapTileLayer.getTileWidth();
+        if (pete.getX() + Pete.WIDTH > levelWidth) {
+            pete.setPosition(levelWidth - Pete.WIDTH, pete.getY());
         }
     }
 
@@ -220,12 +223,22 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
-    private void handleCollisionWithAcorn () {
+    private void handleCollisionWithAcorn() {
         for (Iterator<Acorn> iter = acorns.iterator(); iter.hasNext(); ) {
             Acorn acorn = iter.next();
             if (pete.getCollisionRectangle().overlaps(acorn.getCollision())) {
                 iter.remove();
             }
+        }
+    }
+
+    private void updateCameraX() {
+        TiledMapTileLayer tiledMapTileLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+        float levelWidth = tiledMapTileLayer.getWidth() * tiledMapTileLayer.getTileWidth();
+        if ((pete.getX() > WORLD_WIDTH / 2f) && (pete.getX() < (levelWidth - WORLD_WIDTH / 2f))) {
+            camera.position.set(pete.getX(), camera.position.y, camera.position.z);
+            camera.update();
+            orthogonalTiledMapRenderer.setView(camera);
         }
     }
 
