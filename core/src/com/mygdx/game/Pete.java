@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -25,6 +26,7 @@ public class Pete {
     private final TextureRegion standing;
     private final TextureRegion jumpUp;
     private final TextureRegion jumpDown;
+    private final Sound jumpSound;
 
     private float x = 0;
     private float y = 0;
@@ -34,7 +36,8 @@ public class Pete {
     private float animationTimer = 0;
     private boolean blockJump = false;
 
-    public Pete(Texture texture) {
+    public Pete(Texture texture, Sound jumpSound) {
+        this.jumpSound = jumpSound;
         TextureRegion[] regions = TextureRegion.split(texture, WIDTH, HEIGHT)[0];
         walking = new Animation(0.25F, regions[0], regions[1]);
         walking.setPlayMode(Animation.PlayMode.LOOP);
@@ -56,6 +59,9 @@ public class Pete {
         }
 
         if (input.isKeyPressed(Input.Keys.UP) && !blockJump) {
+            if (ySpeed != MAX_Y_SPEED) {
+                jumpSound.play();
+            }
             ySpeed = MAX_Y_SPEED;
             jumpYDistance += ySpeed;
             blockJump = jumpYDistance > MAX_JUMP_DISTANCE;
