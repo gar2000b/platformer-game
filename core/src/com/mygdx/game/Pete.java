@@ -21,6 +21,9 @@ public class Pete {
     public static final int HEIGHT = 15;
     private static final float MAX_JUMP_DISTANCE = 3 * HEIGHT;
 
+    public enum Direction {UP, DOWN, LEFT, RIGHT}
+    private Direction direction = Direction.RIGHT;
+
     private final Rectangle collisionRectangle = new Rectangle(0, 0, WIDTH, HEIGHT);
     private final Animation walking;
     private final TextureRegion standing;
@@ -51,8 +54,10 @@ public class Pete {
         animationTimer += delta;
         Input input = Gdx.input;
         if (input.isKeyPressed(Input.Keys.RIGHT)) {
+            direction = Direction.RIGHT;
             xSpeed = MAX_X_SPEED;
         } else if (input.isKeyPressed(Input.Keys.LEFT)) {
+            direction = Direction.LEFT;
             xSpeed = -MAX_X_SPEED;
         } else {
             xSpeed = 0;
@@ -131,5 +136,9 @@ public class Pete {
 
     public Rectangle getCollisionRectangle() {
         return collisionRectangle;
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 }

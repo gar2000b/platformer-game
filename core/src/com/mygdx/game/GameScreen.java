@@ -29,8 +29,8 @@ import java.util.Iterator;
  */
 public class GameScreen extends ScreenAdapter {
 
-    private static final float WORLD_WIDTH = 640;
-    private static final float WORLD_HEIGHT = 480;
+    private static final float SCREEN_WIDTH = 640;
+    private static final float SCREEN_HEIGHT = 480;
     private static final float CELL_SIZE = 16;
 
     private ShapeRenderer shapeRenderer;
@@ -57,7 +57,7 @@ public class GameScreen extends ScreenAdapter {
     public void show() {
         super.show();
         camera = new OrthographicCamera();
-        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        viewport = new FitViewport(SCREEN_WIDTH, SCREEN_HEIGHT, camera);
         viewport.apply(true);
 
         shapeRenderer = new ShapeRenderer();
@@ -239,11 +239,43 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Camera position is updated relative to Pete's position following him when he reaches the trailing distances
+     * of 25% of the screen width either side of the world.
+     * 25% || 50% || 25% - in other words, the camera won't trail / lead Pete in either the middle 50% of the screen or
+     * the remaining 25% of the screen width at either of the boundaries of the world. It will trail / lead Pete at
+     * 25% of the screen until the remaining 25% at the boundaries.
+     *
+     * Algorithm:
+     *
+     * This will allow the camera to follow Pete as he runs right:
+     * If Petes position is greater than 75% of the screen width &
+     * Petes position is less than the last remaining 25% of the screen width of the world &
+     * Petes direction is facing right &
+     * Petes position is greater than 25% of the screen width from the current camera position
+     * Then update the new camera position to trail -25% of the screen width from Petes position.
+     *
+     * This will allow the camera to follow Pete as he runs left:
+     * If Petes position is less than 25% of the screen width from the world width &
+     * Petes position is greater than 25% of the screen width &
+     * Petes direction is facing left &
+     * Petes position is less than 25% of the screen width from the current camera position
+     * Then update the new camera position to lead +25% of the screen width from Petes position.
+     *
+     */
     private void updateCameraX() {
         TiledMapTileLayer tiledMapTileLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
         float levelWidth = tiledMapTileLayer.getWidth() * tiledMapTileLayer.getTileWidth();
-        if ((pete.getX() > WORLD_WIDTH / 2f) && (pete.getX() < (levelWidth - WORLD_WIDTH / 2f))) {
-            camera.position.set(pete.getX(), camera.position.y, camera.position.z);
+        if ((pete.getX() > SCREEN_WIDTH * 0.75f) && (pete.getX() < levelWidth - (SCREEN_WIDTH * 0.25f)) && pete
+                .getDirection() == Pete.Direction.RIGHT && pete.getX() > (camera.position.x) + (SCREEN_WIDTH * 0.25f)) {
+            camera.position.set(pete.getX() - (SCREEN_WIDTH * 0.25f), camera.position.y, camera.position.z);
+            camera.update();
+            orthogonalTiledMapRenderer.setView(camera);
+        }
+
+        if ((pete.getX() < levelWidth - (SCREEN_WIDTH * 0.25f)) && (pete.getX() > (SCREEN_WIDTH * 0.25f)) && pete
+                .getDirection() == Pete.Direction.LEFT && pete.getX() < (camera.position.x) - (SCREEN_WIDTH * 0.25f)) {
+            camera.position.set(pete.getX() + (SCREEN_WIDTH * 0.25f), camera.position.y, camera.position.z);
             camera.update();
             orthogonalTiledMapRenderer.setView(camera);
         }
